@@ -1,0 +1,3 @@
+{
+  "/api/predict-knn/route": "app/api/predict-knn/route.js"
+}

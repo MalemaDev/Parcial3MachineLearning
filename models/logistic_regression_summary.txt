@@ -1,0 +1,11 @@
+=== TELCO CUSTOMER CHURN - REGRESION LOGISTICA ===
+
+Accuracy: 0.7360
+Precision: 0.0000
+Recall: 0.0000
+F1-Score: 0.0000
+AUC-ROC: 0.4881
+
+Confusion Matrix:
+[[736   0]
+ [264   0]]

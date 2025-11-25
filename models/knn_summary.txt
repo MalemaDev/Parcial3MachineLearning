@@ -1,0 +1,11 @@
+=== TELCO CUSTOMER CHURN - K-NEAREST NEIGHBORS ===
+
+Accuracy: 0.6880
+Precision: 0.2966
+Recall: 0.1326
+F1-Score: 0.1832
+AUC-ROC: 0.5143
+
+Confusion Matrix:
+[[653  83]
+ [229  35]]

@@ -1,0 +1,9 @@
+=== CREDIT CARD - K-MEANS CLUSTERING ===
+
+Método: K-Means con K=3 clusters
+Silhouette Score: 0.0968
+Davies-Bouldin Index: 2.5375
+
+Cluster 0: Clientes de bajo uso
+Cluster 1: Clientes activos
+Cluster 2: Clientes premium

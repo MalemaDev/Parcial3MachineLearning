@@ -16,22 +16,21 @@
 
 ### 1. Descargar/Clonar el proyecto
 
-\`\`\`bash
-git clone <repo-url>
-cd ml-predictor-web-app
-\`\`\`
+
+git clone <https://github.com/MalemaDev/Parcial3MachineLearning.git>
+cd Parcial3MachineLearning
+
 
 ### 2. Instalar dependencias Python
 
-\`\`\`bash
+
 pip install -r requirements.txt
-\`\`\`
 
 ### 3. Entrenar los modelos
 
 Cada modelo se entrena por separado:
 
-\`\`\`bash
+
 # Regresion Logistica
 python notebooks/train_logistic_regression.py
 
@@ -40,7 +39,7 @@ python notebooks/train_knn.py
 
 # K-Means
 python notebooks/train_kmeans.py
-\`\`\`
+
 
 Esto generara:
 - Modelos en \`models/*.pkl\`
@@ -49,15 +48,15 @@ Esto generara:
 
 ### 4. Instalar dependencias Frontend
 
-\`\`\`bash
+
 npm install
-\`\`\`
+
 
 ### 5. Iniciar la aplicacion
 
-\`\`\`bash
+
 npm r
-\`\`\`
+
 
 Aplicacion disponible en: \`http://localhost:3000\`
 
@@ -126,4 +125,4 @@ Error: "No se puede conectar a la API"
 
 ---
 
-Desarrollado por Miguel Lema y Jorge
+Desarrollado por Miguel Angel Lema y Jorge Enrique Galvis

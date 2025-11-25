@@ -8,25 +8,9 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Parcial Machine Learning",
-  description: "Modelos de Machine Learning supervisado y no supervisado en tiempo real",
-  icons: {
-    icon: [
-      {
-        url: "/icon-light-32x32.png",
-        media: "(prefers-color-scheme: light)",
-      },
-      {
-        url: "/icon-dark-32x32.png",
-        media: "(prefers-color-scheme: dark)",
-      },
-      {
-        url: "/icon.svg",
-        type: "image/svg+xml",
-      },
-    ],
-    apple: "/apple-icon.png",
-  },
-    generator: 'v0.app'
+  description: "Creacion de Modelos Supervisado y NO Supervisados",
+ 
+   
 }
 
 export default function RootLayout({

@@ -18,6 +18,7 @@
 
 
 git clone <https://github.com/MalemaDev/Parcial3MachineLearning.git>
+
 cd Parcial3MachineLearning
 
 
@@ -55,7 +56,7 @@ npm install
 ### 5. Iniciar la aplicacion
 
 
-npm r
+npm run dev
 
 
 Aplicacion disponible en: \`http://localhost:3000\`

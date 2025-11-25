@@ -1,170 +1,169 @@
-# script para entrenar k-means. este lo usamos para el dataset de tarjetas y para generar los clusters
-# tratamos de mantener los pasos claros: cargar datos, preparar, entrenar, evaluar y guardar resultados
+# script para entrenar el modelo knn usando el dataset de churn de telco
+# seguimos el flujo estándar: cargar datos, preparar, entrenar y guardar resultados
 
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score, davies_bouldin_score
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import (
+    roc_curve, auc, confusion_matrix, accuracy_score,
+    precision_score, recall_score, f1_score, roc_auc_score
+)
 import matplotlib.pyplot as plt
+import seaborn as sns
 import pickle
 import os
 
-print("[ENTRENANDO] K-Means Clustering...")
+# mensaje inicial del entrenamiento
+print("[ENTRENANDO] K-Nearest Neighbors...")
 
-# se crean estas carpetas para evitar errores si no existen
+# creamos carpetas necesarias por si no existen
 os.makedirs('models', exist_ok=True)
 os.makedirs('data', exist_ok=True)
 
-# intento de cargar el csv real. si algo falla, generamos datos sintéticos
+# intentamos cargar el dataset real
 try:
-    print("[INFO] cargando dataset credit card...")
-    df = pd.read_csv('data/CC-GENERAL.csv')
+    print("[INFO] cargando dataset telco customer churn...")
+    df = pd.read_csv('data/WA_Fn-UseC_-Telco-Customer-Churn.csv')
     
-    # si el archivo está vacío o raro, lo tomamos como inválido
-    if len(df) < 10:
+    # validamos que el archivo tenga contenido útil
+    if 'TotalCharges' not in df.columns or len(df) < 10:
         raise ValueError("csv invalido o vacio")
     
 except Exception as e:
     print(f"[WARNING] error al cargar csv: {e}")
     print("[INFO] generando datos de prueba...")
     
-    # se generan datos sintéticos por si el archivo original no está
+    # generamos datos sintéticos para no detener el entrenamiento
     np.random.seed(42)
-    n_samples = 10000
+    n_samples = 5000
     
     df = pd.DataFrame({
-        'CUST_ID': [f'id_{i}' for i in range(n_samples)],
-        'BALANCE': np.random.uniform(0, 5000, n_samples),
-        'PURCHASES': np.random.uniform(100, 5000, n_samples),
-        'CREDIT_LIMIT': np.random.uniform(1000, 30000, n_samples),
-        'TENURE': np.random.randint(6, 56, n_samples),
-        'NUM_PRODUCTS': np.random.randint(1, 5, n_samples),
-        'HAS_CREDIT_CARD': np.random.choice([0, 1], n_samples),
-        'IS_ACTIVE_MEMBER': np.random.choice([0, 1], n_samples),
-        'CASH_ADVANCE': np.random.uniform(0, 10000, n_samples),
-        'REVOLVING_UTILIZATION': np.random.uniform(0, 1, n_samples)
+        'customerID': [f'id_{i}' for i in range(n_samples)],
+        'gender': np.random.choice(['Male', 'Female'], n_samples),
+        'SeniorCitizen': np.random.choice([0, 1], n_samples),
+        'Partner': np.random.choice(['Yes', 'No'], n_samples),
+        'Dependents': np.random.choice(['Yes', 'No'], n_samples),
+        'tenure': np.random.randint(1, 72, n_samples),
+        'PhoneService': np.random.choice(['Yes', 'No'], n_samples),
+        'InternetService': np.random.choice(['Fiber optic', 'DSL', 'No'], n_samples),
+        'OnlineSecurity': np.random.choice(['Yes', 'No', 'No internet service'], n_samples),
+        'OnlineBackup': np.random.choice(['Yes', 'No', 'No internet service'], n_samples),
+        'DeviceProtection': np.random.choice(['Yes', 'No', 'No internet service'], n_samples),
+        'TechSupport': np.random.choice(['Yes', 'No', 'No internet service'], n_samples),
+        'StreamingTV': np.random.choice(['Yes', 'No', 'No internet service'], n_samples),
+        'StreamingMovies': np.random.choice(['Yes', 'No', 'No internet service'], n_samples),
+        'Contract': np.random.choice(['Month-to-month', 'One year', 'Two year'], n_samples),
+        'PaperlessBilling': np.random.choice(['Yes', 'No'], n_samples),
+        'PaymentMethod': np.random.choice(['Electronic check', 'Mailed check', 'Bank transfer', 'Credit card'], n_samples),
+        'MonthlyCharges': np.random.uniform(20, 120, n_samples),
+        'TotalCharges': np.random.uniform(100, 8000, n_samples),
+        'Churn': np.random.choice(['Yes', 'No'], n_samples, p=[0.27, 0.73])
     })
     
-    # guardamos el archivo para la próxima vez
-    df.to_csv('data/CC-GENERAL.csv', index=False)
-    print("[INFO] datos generados guardados en data/")
+    # guardamos los datos para futuras ejecuciones
+    df.to_csv('data/WA_Fn-UseC_-Telco-Customer-Churn.csv', index=False)
+    print("[INFO] datos generados y guardados en data/")
 
 # preprocesamiento general
 print("[INFO] preprocesando datos...")
-df = df.dropna()  # quitamos filas nulas para evitar errores en el modelo
 
-# seleccionamos solo columnas numéricas y excluimos el id
-X = df.drop('CUST_ID', axis=1)
+# totalcharges queda como numérico y quitamos nulos
+df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+df = df.dropna(subset=['TotalCharges'])
 
-# escalamos los datos antes de entrenar el modelo
+# identificamos columnas categóricas
+categorical_cols = df.select_dtypes(include=['object']).columns.tolist()
+categorical_cols.remove('customerID')
+categorical_cols.remove('Churn')
+
+# aplicación del label encoding para las columnas categóricas
+label_encoders = {}
+for col in categorical_cols:
+    le = LabelEncoder()
+    df[col] = le.fit_transform(df[col])
+    label_encoders[col] = le
+
+# variable objetivo y variables predictoras
+y = (df['Churn'] == 'Yes').astype(int)
+X = df.drop(['customerID', 'Churn'], axis=1)
+
+# dividimos train y test
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# escalamos las features
 scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-print(f"[INFO] datos escalados: {X_scaled.shape}")
+print(f"[INFO] dataset split: train {X_train.shape[0]}, test {X_test.shape[0]}")
+print(f"[INFO] features: {X.shape[1]}")
 
-# análisis para ver cuál k funciona mejor
-print("\n[ANALIZANDO] número óptimo de clusters...")
-inertias = []
-silhouette_scores = []
-davies_bouldin_scores = []
-K_range = range(2, 11)  # probamos k de 2 a 10
+# entrenamos knn con k=5
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(X_train_scaled, y_train)
 
-for k in K_range:
-    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
-    kmeans.fit(X_scaled)
-    
-    # guardamos métricas para análisis
-    inertias.append(kmeans.inertia_)
-    silhouette_scores.append(silhouette_score(X_scaled, kmeans.labels_))
-    davies_bouldin_scores.append(davies_bouldin_score(X_scaled, kmeans.labels_))
-    
-    print(f"k={k}: inertia={kmeans.inertia_:.2f}, silhouette={silhouette_scores[-1]:.4f}")
+# predicciones y probabilidades
+y_pred_knn = knn.predict(X_test_scaled)
+y_pred_proba_knn = knn.predict_proba(X_test_scaled)[:, 1]
 
-# entrenamos el modelo final con k=3 (lo dejamos fijo)
-print("\n[ENTRENANDO] k-means con k=3...")
-kmeans_final = KMeans(n_clusters=3, random_state=42, n_init=10)
-kmeans_final.fit(X_scaled)
-labels = kmeans_final.labels_
+# métricas del modelo
+knn_accuracy = accuracy_score(y_test, y_pred_knn)
+knn_precision = precision_score(y_test, y_pred_knn)
+knn_recall = recall_score(y_test, y_pred_knn)
+knn_f1 = f1_score(y_test, y_pred_knn)
+knn_auc = roc_auc_score(y_test, y_pred_proba_knn)
+knn_cm = confusion_matrix(y_test, y_pred_knn)
 
-# impresión de métricas principales
-print(f"silhouette score: {silhouette_score(X_scaled, labels):.4f}")
-print(f"davies-bouldin index: {davies_bouldin_score(X_scaled, labels):.4f}")
-print(f"distribución de clusters: {np.bincount(labels)}")
+print(f"\n[METRICAS] k-nearest neighbors:")
+print(f"accuracy: {knn_accuracy:.4f}")
+print(f"precision: {knn_precision:.4f}")
+print(f"recall: {knn_recall:.4f}")
+print(f"f1-score: {knn_f1:.4f}")
+print(f"auc: {knn_auc:.4f}")
+print(f"confusion matrix:\n{knn_cm}")
 
-# perfilamos cada cluster sacando promedios
-print("\n[PERFILANDO] clusters...")
-df['Cluster'] = labels
+# guardamos modelo, scaler y label encoders
+print("\n[GUARDANDO] modelo knn...")
+pickle.dump(knn, open('models/knn.pkl', 'wb'))
+pickle.dump(scaler, open('models/scaler_knn.pkl', 'wb'))
+pickle.dump(label_encoders, open('models/label_encoders.pkl', 'wb'))
 
-cluster_profiles = {}
-for cluster in range(3):
-    cluster_data = df[df['Cluster'] == cluster]
-    profile = cluster_data.drop(['CUST_ID', 'Cluster'], axis=1).mean()
-    cluster_profiles[cluster] = profile
-    
-    # mostramos algunos valores representativos
-    print(f"\ncluster {cluster} ({len(cluster_data)} clientes):")
-    print(f"  balance promedio: ${profile['BALANCE']:.2f}")
-    print(f"  compras promedio: ${profile['PURCHASES']:.2f}")
-    print(f"  límite de crédito: ${profile['CREDIT_LIMIT']:.2f}")
-
-# guardamos el modelo, el scaler y los perfiles para usarlos en la app
-print("\n[GUARDANDO] modelo k-means...")
-pickle.dump(kmeans_final, open('models/kmeans.pkl', 'wb'))
-pickle.dump(scaler, open('models/scaler_kmeans.pkl', 'wb'))
-pickle.dump(cluster_profiles, open('models/cluster_profiles.pkl', 'wb'))
-
-# generamos gráficas del análisis
+# generamos gráficas de métricas
 print("[GENERANDO] gráficas...")
-fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 
-# curva elbow
-axes[0, 0].plot(K_range, inertias, 'bo-', linewidth=2, markersize=8)
-axes[0, 0].set_xlabel('number of clusters (k)')
-axes[0, 0].set_ylabel('inertia')
-axes[0, 0].set_title('elbow method')
-axes[0, 0].grid(alpha=0.3)
+# curva roc
+fpr_knn, tpr_knn, _ = roc_curve(y_test, y_pred_proba_knn)
+axes[0].plot(fpr_knn, tpr_knn, label=f'knn (auc={knn_auc:.3f})', lw=2, color='#10b981')
+axes[0].plot([0, 1], [0, 1], 'k--', lw=1)
+axes[0].set_xlabel('false positive rate')
+axes[0].set_ylabel('true positive rate')
+axes[0].set_title('roc curve - knn')
+axes[0].legend()
+axes[0].grid(alpha=0.3)
 
-# silhouette
-axes[0, 1].plot(K_range, silhouette_scores, 'go-', linewidth=2, markersize=8)
-axes[0, 1].set_xlabel('number of clusters (k)')
-axes[0, 1].set_ylabel('silhouette score')
-axes[0, 1].set_title('silhouette analysis')
-axes[0, 1].grid(alpha=0.3)
-
-# davies-bouldin
-axes[1, 0].plot(K_range, davies_bouldin_scores, 'ro-', linewidth=2, markersize=8)
-axes[1, 0].set_xlabel('number of clusters (k)')
-axes[1, 0].set_ylabel('davies-bouldin index')
-axes[1, 0].set_title('davies-bouldin index (lower is better)')
-axes[1, 0].grid(alpha=0.3)
-
-# distribución de clusters finales
-axes[1, 1].bar(range(3), np.bincount(labels), color=['#ff6b6b', '#4ecdc4', '#45b7d1'])
-axes[1, 1].set_xlabel('cluster')
-axes[1, 1].set_ylabel('número de clientes')
-axes[1, 1].set_title('distribución de clusters (k=3)')
-axes[1, 1].set_xticks(range(3))
-axes[1, 1].grid(alpha=0.3, axis='y')
+# matriz de confusión
+sns.heatmap(knn_cm, annot=True, fmt='d', ax=axes[1], cmap='Greens')
+axes[1].set_title('confusion matrix - knn')
+axes[1].set_ylabel('true label')
+axes[1].set_xlabel('predicted label')
 
 plt.tight_layout()
-plt.savefig('models/kmeans_analysis.png', dpi=150, bbox_inches='tight')
-print("[OK] gráficas guardadas en models/kmeans_analysis.png")
+plt.savefig('models/knn_metrics.png', dpi=150, bbox_inches='tight')
+print("[OK] gráficas guardadas en models/knn_metrics.png")
 
-# guardar un pequeño resumen en texto
-with open('models/kmeans_summary.txt', 'w') as f:
-    f.write("=== credit card - k-means clustering ===\n\n")
-    f.write("método: k-means con k=3 clusters\n")
-    f.write(f"silhouette score: {silhouette_score(X_scaled, labels):.4f}\n")
-    f.write(f"davies-bouldin index: {davies_bouldin_score(X_scaled, labels):.4f}\n\n")
-    
-    descriptions = [
-        "cluster 0: clientes de bajo uso",
-        "cluster 1: clientes activos",
-        "cluster 2: clientes premium"
-    ]
-    
-    for i, desc in enumerate(descriptions):
-        f.write(f"{desc}\n")
+# resumen en archivo txt
+with open('models/knn_summary.txt', 'w') as f:
+    f.write("=== telco customer churn - k-nearest neighbors ===\n\n")
+    f.write(f"accuracy: {knn_accuracy:.4f}\n")
+    f.write(f"precision: {knn_precision:.4f}\n")
+    f.write(f"recall: {knn_recall:.4f}\n")
+    f.write(f"f1-score: {knn_f1:.4f}\n")
+    f.write(f"auc-roc: {knn_auc:.4f}\n")
+    f.write(f"\nconfusion matrix:\n{knn_cm}\n")
 
-print("\n[EXITO] entrenamiento k-means completado!")
+print("\n[EXITO] entrenamiento knn completado!")

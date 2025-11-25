@@ -1,4 +1,6 @@
 {
+  "/api/predict-kmeans/route": "app/api/predict-kmeans/route.js",
+  "/api/predict-knn/route": "app/api/predict-knn/route.js",
   "/api/predict-lr/route": "app/api/predict-lr/route.js",
   "/page": "app/page.js"
 }

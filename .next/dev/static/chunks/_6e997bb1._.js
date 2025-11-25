@@ -477,7 +477,7 @@ function LogisticRegressionPredictor() {
         columnNumber: 5
     }, this);
 }
-_s(LogisticRegressionPredictor, "A5YNgSV4GVslXQ5NHBYsoe5c69Q=");
+_s(LogisticRegressionPredictor, "7J3QrXduWWjbgzEyW/Zsm/fiQ+4=");
 _c = LogisticRegressionPredictor;
 var _c;
 __turbopack_context__.k.register(_c, "LogisticRegressionPredictor");
@@ -489,7 +489,9 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 "use strict";
 
 // este componente usa KNN para predecir si un cliente va a hacer churn
-// KNN busca los vecinos más parecidos en los datos de entrenamiento
+// básicamente KNN busca clientes parecidos en los datos originales
+// y revisa qué hicieron ellos (irse o quedarse)
+// si la mayoría eran churn → lo clasifica como churn
 __turbopack_context__.s([
     "default",
     ()=>KNNPredictor
@@ -502,13 +504,15 @@ var _s = __turbopack_context__.k.signature();
 ;
 function KNNPredictor() {
     _s();
-    // estado de carga mientras espero respuesta
+    // loading: mientras espero la respuesta del backend
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
-    // estado del resultado
+    // resultado final de la predicción
     const [result, setResult] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
-    // estado para errores
+    // errores cuando flask falla o no está corriendo
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(null);
-    // los mismos datos que en regresión logística pero procesados por KNN
+    // estos son los datos que necesita KNN
+    // son los mismos del dataset Telco
+    // los dejo con valores base para no empezar vacío
     const [formData, setFormData] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])({
         gender: "Masculino",
         SeniorCitizen: "No",
@@ -530,22 +534,21 @@ function KNNPredictor() {
         MonthlyCharges: "65",
         TotalCharges: "780"
     });
-    // actualiza los valores cuando el usuario tipea
+    // cada vez que el usuario cambia un input lo actualizamos
     const handleChange = (e)=>{
         const { name, value } = e.target;
         setFormData((prev)=>({
                 ...prev,
                 [name]: value
             }));
-        setError(null);
+        setError(null); // si había error antes, lo quito
     };
-    // envía datos al endpoint de KNN
+    // acá mandamos los datos al backend (endpoint de KNN)
     const handleSubmit = async (e)=>{
         e.preventDefault();
         setLoading(true);
         setError(null);
         try {
-            // petición al servidor para obtener predicción KNN
             const response = await fetch("/api/predict-knn", {
                 method: "POST",
                 headers: {
@@ -553,17 +556,20 @@ function KNNPredictor() {
                 },
                 body: JSON.stringify(formData)
             });
+            // si falla el servidor
             if (!response.ok) {
                 throw new Error("Error en el servidor");
             }
-            // guardo la respuesta en el estado
             const data = await response.json();
+            // si flask manda error propio
             if (data.error) {
                 setError(data.error);
             } else {
+                // si todo salió bien guardo la predicción
                 setResult(data);
             }
         } catch (err) {
+            // error típico cuando flask no está prendido
             setError("Error al conectar con el servidor. Intenta de nuevo.");
             console.error("Error:", err);
         } finally{
@@ -577,7 +583,7 @@ function KNNPredictor() {
                 children: "K-Nearest Neighbors (KNN)"
             }, void 0, false, {
                 fileName: "[project]/components/KNNPredictor.tsx",
-                lineNumber: 84,
+                lineNumber: 91,
                 columnNumber: 7
             }, this),
             error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -585,8 +591,8 @@ function KNNPredictor() {
                 children: error
             }, void 0, false, {
                 fileName: "[project]/components/KNNPredictor.tsx",
-                lineNumber: 87,
-                columnNumber: 17
+                lineNumber: 95,
+                columnNumber: 9
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
                 onSubmit: handleSubmit,
@@ -599,7 +605,7 @@ function KNNPredictor() {
                                 children: "Información Personal"
                             }, void 0, false, {
                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                lineNumber: 92,
+                                lineNumber: 103,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -612,7 +618,7 @@ function KNNPredictor() {
                                                 children: "Género"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                                lineNumber: 96,
+                                                lineNumber: 109,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -625,26 +631,26 @@ function KNNPredictor() {
                                                         children: "Masculino"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                                        lineNumber: 103,
+                                                        lineNumber: 116,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                                         children: "Femenino"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                                        lineNumber: 104,
+                                                        lineNumber: 117,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                                lineNumber: 97,
+                                                lineNumber: 110,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 95,
+                                        lineNumber: 108,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -654,7 +660,7 @@ function KNNPredictor() {
                                                 children: "Antigüedad (meses)"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                                lineNumber: 110,
+                                                lineNumber: 123,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -665,13 +671,13 @@ function KNNPredictor() {
                                                 className: "w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                                lineNumber: 111,
+                                                lineNumber: 124,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 109,
+                                        lineNumber: 122,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -681,7 +687,7 @@ function KNNPredictor() {
                                                 children: "Cargos Mensuales"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                                lineNumber: 122,
+                                                lineNumber: 135,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -692,13 +698,13 @@ function KNNPredictor() {
                                                 className: "w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                                lineNumber: 123,
+                                                lineNumber: 136,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 121,
+                                        lineNumber: 134,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -708,7 +714,7 @@ function KNNPredictor() {
                                                 children: "Cargos Totales"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                                lineNumber: 134,
+                                                lineNumber: 147,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -719,25 +725,25 @@ function KNNPredictor() {
                                                 className: "w-full px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                                lineNumber: 135,
+                                                lineNumber: 148,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 133,
+                                        lineNumber: 146,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                lineNumber: 93,
+                                lineNumber: 105,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/KNNPredictor.tsx",
-                        lineNumber: 91,
+                        lineNumber: 102,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -747,13 +753,13 @@ function KNNPredictor() {
                         children: loading ? "Prediciendo..." : "Predecir"
                     }, void 0, false, {
                         fileName: "[project]/components/KNNPredictor.tsx",
-                        lineNumber: 147,
+                        lineNumber: 160,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/KNNPredictor.tsx",
-                lineNumber: 90,
+                lineNumber: 101,
                 columnNumber: 7
             }, this),
             result && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -770,7 +776,7 @@ function KNNPredictor() {
                                         children: "✓"
                                     }, void 0, false, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 163,
+                                        lineNumber: 178,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -778,13 +784,13 @@ function KNNPredictor() {
                                         children: "Clasificación KNN"
                                     }, void 0, false, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 164,
+                                        lineNumber: 179,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                lineNumber: 162,
+                                lineNumber: 177,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -795,7 +801,7 @@ function KNNPredictor() {
                                         children: "Predicción"
                                     }, void 0, false, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 169,
+                                        lineNumber: 184,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -803,13 +809,13 @@ function KNNPredictor() {
                                         children: result.prediction === "Sí" ? "CHURN" : "NO CHURN"
                                     }, void 0, false, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 170,
+                                        lineNumber: 185,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                lineNumber: 168,
+                                lineNumber: 183,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -822,27 +828,27 @@ function KNNPredictor() {
                                             children: "Distancia: 0.13"
                                         }, void 0, false, {
                                             fileName: "[project]/components/KNNPredictor.tsx",
-                                            lineNumber: 176,
+                                            lineNumber: 193,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 175,
+                                        lineNumber: 192,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                         className: "bg-gray-800 p-2 rounded",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                             className: "text-gray-400 text-xs",
-                                            children: "K=5 vecinos"
+                                            children: "K = 5 vecinos"
                                         }, void 0, false, {
                                             fileName: "[project]/components/KNNPredictor.tsx",
-                                            lineNumber: 179,
+                                            lineNumber: 196,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 178,
+                                        lineNumber: 195,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -856,12 +862,12 @@ function KNNPredictor() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/KNNPredictor.tsx",
-                                            lineNumber: 182,
+                                            lineNumber: 199,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 181,
+                                        lineNumber: 198,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -875,39 +881,39 @@ function KNNPredictor() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/KNNPredictor.tsx",
-                                            lineNumber: 185,
+                                            lineNumber: 202,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 184,
+                                        lineNumber: 201,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                lineNumber: 174,
+                                lineNumber: 191,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "bg-gray-800 p-3 rounded mb-4",
                                 children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                     className: "text-gray-400 text-sm",
-                                    children: "La clasificación se basa en la mayoría de clase de los 5 vecinos más cercanos en el espacio de características normalizadas."
+                                    children: "La clasificación se hace revisando los 5 clientes más parecidos en el dataset y cuál fue su resultado real."
                                 }, void 0, false, {
                                     fileName: "[project]/components/KNNPredictor.tsx",
-                                    lineNumber: 191,
+                                    lineNumber: 208,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                lineNumber: 190,
+                                lineNumber: 207,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/KNNPredictor.tsx",
-                        lineNumber: 160,
+                        lineNumber: 174,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -918,7 +924,7 @@ function KNNPredictor() {
                                 children: "5 Vecinos Más Cercanos"
                             }, void 0, false, {
                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                lineNumber: 200,
+                                lineNumber: 216,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -940,7 +946,7 @@ function KNNPredictor() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                                lineNumber: 205,
+                                                lineNumber: 224,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -948,40 +954,40 @@ function KNNPredictor() {
                                                 children: i === 2 ? "Sí" : "No"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                                lineNumber: 206,
+                                                lineNumber: 225,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, i, true, {
                                         fileName: "[project]/components/KNNPredictor.tsx",
-                                        lineNumber: 204,
+                                        lineNumber: 220,
                                         columnNumber: 17
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/components/KNNPredictor.tsx",
-                                lineNumber: 201,
+                                lineNumber: 218,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/KNNPredictor.tsx",
-                        lineNumber: 199,
+                        lineNumber: 215,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/KNNPredictor.tsx",
-                lineNumber: 158,
+                lineNumber: 171,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/KNNPredictor.tsx",
-        lineNumber: 83,
+        lineNumber: 90,
         columnNumber: 5
     }, this);
 }
-_s(KNNPredictor, "A5YNgSV4GVslXQ5NHBYsoe5c69Q=");
+_s(KNNPredictor, "7J3QrXduWWjbgzEyW/Zsm/fiQ+4=");
 _c = KNNPredictor;
 var _c;
 __turbopack_context__.k.register(_c, "KNNPredictor");
@@ -1486,7 +1492,7 @@ function KMeansPredictor() {
         columnNumber: 5
     }, this);
 }
-_s(KMeansPredictor, "Osj+yQDfY+9986qdk4MMKOj4m0o=");
+_s(KMeansPredictor, "LEQySbcJkrGX66nGhAPjp3Ylmw8=");
 _c = KMeansPredictor;
 var _c;
 __turbopack_context__.k.register(_c, "KMeansPredictor");

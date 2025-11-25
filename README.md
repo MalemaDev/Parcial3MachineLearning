@@ -1,5 +1,7 @@
 # Parcial Final Machine Learning
 
+Parcial Desarrollado por Miguel Angel Lema ID: 407056 y Jorge Enrique Galvis ID:404855
+
 
 ## Caracteristicas
 
@@ -126,4 +128,4 @@ Error: "No se puede conectar a la API"
 
 ---
 
-Desarrollado por Miguel Angel Lema y Jorge Enrique Galvis
+Parcial Desarrollado por Miguel Angel Lema ID: 407056 y Jorge Enrique Galvis ID:404855
